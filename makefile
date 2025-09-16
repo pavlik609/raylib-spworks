@@ -15,13 +15,19 @@ OBJ_EXAMPLES=$(SRCS_EXAMPLES:$(SRC_EXAMPLES)/%.cpp=bin/%.o)
 TARGETS_EXAMPLES=$(OBJ_EXAMPLES:bin/%.o=%)
 
 #Compiles all of the OBJ_EXAMPLES into separate executables
+
+#12. JUN 25 - why does make have to be so hard
 $(TARGETS_EXAMPLES): $(OBJ_EXAMPLES)
 	for obj in $(OBJ_EXAMPLES) ; do \
-		$(CC) $(CFLAGS) $< -o $(basename $<) $(OBJ_ENGINE); \
+		a="$$obj" ; \
+		b=$${a%%".o"} ;\
+		$(CC) $(CFLAGS) $$a -o $$b $(OBJ_ENGINE); \
 	done
 
+archive: $(OBJ_ENGINE)
+	ar -rcs libspworks.a $(OBJ_ENGINE)
 
-.PHONY: engine examples clean all
+.PHONY: engine examples clean all archive
 
 engine: $(OBJ_ENGINE)
 

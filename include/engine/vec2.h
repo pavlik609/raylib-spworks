@@ -55,6 +55,10 @@ public:
         return lhs;
     }
 
+    bool operator==(Vec2 rhs){
+        return (this->x == rhs.x && this->y == rhs.y);
+    }
+
     Vec2(){
         x=0;
         y=0;

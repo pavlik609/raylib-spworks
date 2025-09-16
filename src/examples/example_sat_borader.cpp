@@ -3,8 +3,8 @@
 #include"../../include/engine/polygon.h"
 #include"../../include/engine/random.h"
 
-#define RAYGUI_IMPLEMENTATION
-#include<raylib/raygui.h>
+//#define RAYGUI_IMPLEMENTATION
+//#include"../../include/external/raylib/raygui.h"
 #include<vector>
 #include<iostream>
 #include<cmath>
@@ -29,21 +29,17 @@ void DrawPointWithCoords(Vector2 p, Color c){
 }
 
 int main(){
-    InitWindow(WIND_W,WIND_H,"raylib spworks - [ separating axis theorem ]");
+    InitWindow(WIND_W,WIND_H,"raylib spworks - [ SAT w/ AABB checking]");
 
     vector<polygon> polygons;
-    polygon poly = c2d::polygon({50,30},{{-10,10},{-10,-10},{40,-10},{40,10}});  
-    polygons.push_back({{20,20},{{-10,-10},{10,-10},{10,10},{-10,10}}});  
-    polygons.push_back({{-25,30},{{-25,-10},{3,-7},{10,10},{-40,10}}});  
-    polygons.push_back({{-30,70},{{-15,-14},{-6,-25},{21,-3},{10,14},{-10,28}}});  
-    polygons[2].ang_vel = M_PI/10000.0f;
+    polygon poly = c2d::polygon({50,30},{{-10,10},{-10,-10},{40,-10},{40,10}});
     for(int i=0;i<100;i++){
         vector<Vec2> points;
         Vec2 pos = {G_RAND.GetFloat(-100,100),G_RAND.GetFloat(-100,100)};
         float size = G_RAND.GetFloat(-30,30);
         if (size < 3) { size = 20; }
         float angle = 2*M_PI/(i+3);
-        for(int j=1;j<(i+4);j++){
+        for(int j=1;j<(8+4);j++){
             points.push_back(Vec2(cos(angle*j),sin(angle*j))*size);
         }
         polygon p(points);
@@ -51,6 +47,7 @@ int main(){
         p.ang_vel = G_RAND.GetFloat(-M_PI/5000.0f, M_PI/5000.0f);
         polygons.push_back(p); 
     }
+
     Camera2D camera = { 0 };
     camera.target = (Vector2){ cam_pos.x, cam_pos.y };
     camera.offset = (Vector2){ WIND_W/2.0f, WIND_H/2.0f};
@@ -89,32 +86,33 @@ int main(){
 
         DrawLineEx({0,real_cam_pos.y-WIND_H/2.0f},{0,real_cam_pos.y+WIND_H/2.0f},2.0f,LIGHTGRAY);
         DrawLineEx({real_cam_pos.x-WIND_W/2.0f,0},{real_cam_pos.x+WIND_W/2.0f,0},2.0f,LIGHTGRAY);
-        poly.pos = (GetMousePosition()-Vec2(WIND_W/2.0f,WIND_H/2.0f))*Vec2(1,-1)+cam_pos;
+        poly.pos = (GetMousePosition()-Vec2(WIND_W/2.0f,WIND_H/2.0f))+Vec2(cam_pos.x,-cam_pos.y);
         float rot_add = 0;
         switch ((int)GetMouseWheelMove()){
             case -1:
-                rot_add = -0.1;
+                rot_add = 0.1;
                 break;
             case 0:
                 break;
             case 1:
-                rot_add = 0.1;
+                rot_add = -0.1;
                 break;
         };
         poly.rot += rot_add;
         poly.Update();
         poly.DrawDbg();
         bool collision = false;
-
         // ---- Polygon Update ----
         for(polygon& p : polygons){
             p.Update();
             p.DrawDbg();
-            bool c = poly.CheckCollision_part1(p) && p.CheckCollision_part1(poly);
+            bool c = poly.CheckCollision(p);
             collision =  c > collision ? c : collision;
         }
-        // ---- Polygon Update ----
 
+        //collision = poly.aabb.CheckCollision(polygons[2].aabb);
+        // ---- Polygon Update ----
+    //todo : just aabb check before collision check, then compare heavy polygon count fps
         EndMode2D();
 
         // ---- UI ----

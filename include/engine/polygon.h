@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vec2.h"
+#include "aabb.h"
 #include <cassert>
 #include <iostream>
 #include "../external/raylib/raylib.h"
@@ -25,6 +26,8 @@ public:
     Vector2 vel;
     float ang_vel;
 
+    AABB aabb;
+
     polygon(std::vector<Vec2> _verts){
         verts = _verts;
         num_vtx = _verts.size();
@@ -32,6 +35,7 @@ public:
         rot = 0.0f;
         ang_vel = 0.0f;
         vel = {0,0};
+        aabb = GetAABB();
         InitVertOffNMag();
         UpdateFaceNormals();
         GetMaxMin();
@@ -45,6 +49,7 @@ public:
         rot = 0.0f;
         ang_vel = 0.0f;
         vel = {0,0};
+        aabb = GetAABB();
         InitVertOffNMag();
         UpdateFaceNormals();
         GetMaxMin();
@@ -60,6 +65,7 @@ public:
     bool CheckCollision_part1(polygon);
     bool CheckCollision(polygon);
     Vec2 GetDrawPos();
+    AABB GetAABB();
 };
 
 

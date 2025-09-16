@@ -5,12 +5,13 @@
 #include"../../include/engine/polygon.h"
 #include"../../include/engine/vec2.h"
 
-//TODO: handle collsion checking (both broad and )
+//IDEA: make vertical chunks, and sort the polygons by their low and high x or y values (all inbetweens too)
 
 void c2d::polygon::InitVertOffNMag(){
     for(Vec2 v : verts){
         float angle = atan2(v.y,v.x);
         float magnitude = Vector2Length(v.toRVec());
+        angle+=M_PI;
         verts_ang_magn.push_back({angle,magnitude});
     }
 }
@@ -19,6 +20,7 @@ void c2d::polygon::UpdateVertPos(){
     for(int i=0;i<num_vtx;i++){
         float angle = rot+verts_ang_magn[i].x;
         float magnitude = verts_ang_magn[i].y;
+        angle+=M_PI;
         verts[i] = (Vec2(cos(angle),sin(angle))*magnitude);
     }
 }
@@ -33,20 +35,24 @@ void c2d::polygon::Update(){
     this->rot+=this->ang_vel;
 
     UpdateVertPos();
+
+    GetAABB();
+    //aabb.DrawDbg();
+
     UpdateFaceNormals();
     GetMaxMin();
 }
 
 void c2d::polygon::DrawDbg(){
     Vec2 dpos = GetDrawPos();
-    DrawLineV(((this->pos+this->verts[0])*Vec2(1,-1)).toRVec(),((this->pos+this->verts[1])*Vec2(1,-1)).toRVec(),BLACK);
+    DrawLineV(((this->pos+this->verts[0])).toRVec(),((this->pos+this->verts[1])).toRVec(),BLACK);
     for(int i=0;i<this->num_vtx;i++){
-        DrawCircleV((verts[i].GetWorldPos(*this)*Vec2(1,-1)).toRVec(), 2, BLACK);
+        DrawCircleV(verts[i].GetWorldPos(*this).toRVec(), 2, BLACK);
         if(i != 0){
-            DrawLineV(( (this->pos+this->verts[i-1])*Vec2(1,-1)).toRVec(),((this->pos+this->verts[i])*Vec2(1,-1)).toRVec(),BLACK);
+            DrawLineV(( (this->pos+this->verts[i-1])).toRVec(),((this->pos+this->verts[i])).toRVec(),BLACK);
         }
     }
-    DrawLineV(((this->pos+this->verts[num_vtx-1])*Vec2(1,-1)).toRVec(),((this->pos+this->verts[0])*Vec2(1,-1)).toRVec(),BLACK);
+    DrawLineV(((this->pos+this->verts[num_vtx-1])).toRVec(),((this->pos+this->verts[0])).toRVec(),BLACK);
 }
 
 void c2d::polygon::UpdateFaceNormals(){
@@ -119,5 +125,26 @@ bool c2d::polygon::CheckCollision_part1(polygon other){
     return true;
 }
 bool c2d::polygon::CheckCollision(polygon p){
-    return this->CheckCollision_part1(p) && p.CheckCollision_part1(*this);
+    if (!aabb.CheckCollision(p.aabb)) { return false; }
+    if (!this->CheckCollision_part1(p)) { return false; }
+    return p.CheckCollision_part1(*this);
+}
+
+c2d::AABB c2d::polygon::GetAABB(){
+    float max_x = NAN;
+    float min_x = NAN;
+    
+    float max_y = NAN;
+    float min_y = NAN;
+
+    for(Vec2 v : verts){
+        if (v.x > max_x || std::isnan(max_x)) { max_x = v.x; }
+        if (v.x < min_x || std::isnan(min_x)) { min_x = v.x; }
+        
+        if (v.y > max_y || std::isnan(max_y)) { max_y = v.y; }
+        if (v.y < min_y || std::isnan(min_y)) { min_y = v.y; }
+    }
+
+    //Due to the annoying coordinate flip
+    return AABB(Vec2(min_x,min_y).GetWorldPos(*this),Vec2(max_x,max_y).GetWorldPos(*this));
 }
