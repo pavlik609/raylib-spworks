@@ -4,6 +4,7 @@
 #include "../external/raylib/raylib.h"
 #include "aabb.h"
 #include "drawing.h"
+#include "spfunc.h"
 #include "vec2.h"
 
 namespace spworks {
@@ -65,8 +66,15 @@ struct gui_panel{
     }
 };
 
+[[deprecated("Use the spfunc::spfunc overloads instead")]]
 extern void DrawButton(spworks::drawing::ATexture* texture, c2d::Vec2 pos, void(*func)(),c2d::AABB aabb);
+
+[[deprecated("Use the spfunc::spfunc overloads instead")]]
 extern void DrawButton(Rectangle rec, void(*func)(),c2d::AABB aabb);
+
+extern void DrawButton(spworks::drawing::ATexture* texture, c2d::Vec2 pos, spfunc::spfunc* s,c2d::AABB aabb);
+
+extern void DrawButton(Rectangle rec, spfunc::spfunc* s,c2d::AABB aabb);
 
 }
 }
