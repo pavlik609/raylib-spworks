@@ -1,6 +1,7 @@
 #include "../../include/engine/drawing.h"
 #include "../../include/engine/vec2.h"
 #include "../../include/external/raylib/raylib.h"
+#include <cmath>
 
 std::list<spworks::drawing::ATextureZOrder> spworks::drawing::sprite_buffer = {};
 
@@ -15,7 +16,13 @@ void spworks::drawing::DrawSquashText(RenderTexture2D* r,std::string text, float
 }
 
 void spworks::drawing::DrawFromAtlas(spworks::drawing::ATexture texture, c2d::Vec2 pos, c2d::Vec2 scale, c2d::Vec2 pivot, float rotation, Color color){
-    DrawTexturePro(*texture.atlas, texture.dimensions, {(float)pos.x,(float)pos.y,(float)texture.dimensions.width*scale.x,texture.dimensions.height*scale.y}, pivot.toRVec(), rotation, color);
+    DrawTexturePro(*texture.atlas, texture.dimensions, {
+            (float)round(pos.x), // When not rounding, pixels from other sprites in an atlas flow over
+            (float)round(pos.y),
+            (float)texture.dimensions.width*scale.x,
+            (float)texture.dimensions.height*scale.y
+        }, 
+        pivot.toRVec(), rotation, color);
 }
 
 void spworks::drawing::DrawFromAtlasZOrder(ATexture texture, c2d::Vec2 pos, c2d::Vec2 scale, c2d::Vec2 pivot, float rotation, Color color){
